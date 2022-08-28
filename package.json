@@ -1,0 +1,36 @@
+{
+  "name": "teka-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./build/index.mjs",
+  "type": "module",
+  "bin": {
+    "teka": "./build/index.mjs"
+  },
+  "scripts": {
+    "build": "rimraf build && esbuild ./src/index.ts --format=esm --bundle --minify --platform=node --external:./node_modules/* --outfile=./build/index.mjs",
+    "format": "prettier --write ./src/",
+    "lint": "eslint ./src/*"
+  },
+  "keywords": [],
+  "author": "Maxim \"maxqwars\" Maximenko <maxqwars@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.7.13",
+    "@types/yargs": "^17.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
+    "esbuild": "^0.15.5",
+    "eslint": "^8.23.0",
+    "prettier": "2.7.1",
+    "rimraf": "^3.0.2"
+  },
+  "dependencies": {
+    "@maxqwars/metaform": "^0.0.11",
+    "chalk": "^5.0.1",
+    "cli-table3": "^0.6.2",
+    "cross-fetch": "^3.1.5",
+    "millify": "^5.0.0",
+    "yargs": "^17.5.1"
+  }
+}
