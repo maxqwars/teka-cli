@@ -13,10 +13,15 @@ export type ReleaseTableViewData = {
 };
 
 class TekaView {
+  private terminalWidth = process.stdout.columns;
+
   makeReleasesTable(releases: ReleaseTableViewData[]) {
+    const minSize = 36;
+    const nameAllowedSize = this.terminalWidth - minSize;
+
     const releasesTable = new Table({
       head: ["ID", "YEAR", "TYPE", "S", "FAV", "NAME"],
-      colWidths: [7, 7, 9, 3, 6, 60],
+      colWidths: [7, 6, 7, 3, 6, nameAllowedSize],
     });
 
     releases.map(({ id, year, type, status, name, quality }) => {

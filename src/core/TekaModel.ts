@@ -8,6 +8,10 @@ class TekaModel {
   async fetchUpdatedContentList(limit = 10) {
     return await this._database.getUpdates({ limit });
   }
+
+  async searchInDatabase(search: string) {
+    return await this._search.searchTitles({ search });
+  }
 }
 
 export default new TekaModel();
