@@ -1,11 +1,11 @@
 {
   "name": "teka-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "Unofficial console client for Anilibria",
   "main": "./build/index.mjs",
   "type": "module",
   "bin": {
-    "teka": "./build/index.mjs"
+    "teka": "build/index.mjs"
   },
   "scripts": {
     "build": "rimraf build && esbuild ./src/index.ts --format=esm --bundle --minify --platform=node --external:./node_modules/* --outfile=./build/index.mjs",
@@ -32,5 +32,13 @@
     "cross-fetch": "^3.1.5",
     "millify": "^5.0.0",
     "yargs": "^17.5.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maxqwars/teka-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maxqwars/teka-cli/issues"
+  },
+  "homepage": "https://github.com/maxqwars/teka-cli#readme"
 }
