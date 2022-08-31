@@ -1,6 +1,6 @@
 {
   "name": "teka-cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Unofficial console client for Anilibria",
   "main": "./build/index.mjs",
   "type": "module",

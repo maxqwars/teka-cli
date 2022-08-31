@@ -25,7 +25,7 @@ export default class TekaController {
         };
       });
 
-      console.log(viewModel)
+      console.log(viewModel);
 
       console.log(this._view.generateReleaseListView(viewModel));
       return;
