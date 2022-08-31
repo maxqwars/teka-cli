@@ -11,7 +11,20 @@ global.fetch = fetch;
 const model = new TekaModel();
 const view = new TekaView();
 const controller = new TekaController(model, view);
+const cli = yargs(hideBin(process.argv));
 
-yargs(hideBin(process.argv))
-  .command("get-updates", "=>", () => controller.getUpdatesCommand())
-  .parse();
+// ==>
+cli.command("get-updates", "=>", () => controller.getUpdatesCommand());
+
+// ==>
+cli.command(
+  "find [query]",
+  "=>",
+  (yargs) => {
+    return yargs.positional("query", {});
+  },
+  (argv) => controller.find(argv.query)
+);
+
+// ==>
+cli.parse();

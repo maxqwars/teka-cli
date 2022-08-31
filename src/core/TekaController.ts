@@ -31,4 +31,26 @@ export default class TekaController {
 
     return;
   }
+
+  async find(query) {
+    const content = await this._model.findRelease(query);
+
+    if (content) {
+      const viewModel: ReleasesListViewModel[] = content?.map((release) => {
+        return {
+          id: release.id || 0,
+          year: release.season?.year || 0,
+          typeCode: release.type?.code || 0,
+          statusCode: release.status?.code || 0,
+          name: release.names?.ru || "Unknown",
+          inFavorites: release.inFavorites || 0,
+        };
+      });
+
+      console.log(this._view.generateReleaseListView(viewModel));
+      return;
+    }
+
+    return;
+  }
 }

@@ -9,7 +9,14 @@ export default class TekaModel {
   };
 
   static _onlyRequiredFields: Types.ISelectQueryParams = {
-    filter: ["id", "in_favorites", "names", "status.code", "season.year"],
+    filter: [
+      "id",
+      "in_favorites",
+      "names",
+      "status.code",
+      "season.year",
+      "type.code",
+    ],
   };
 
   private _databaseModule: Modules.MetaDatabase;
@@ -28,6 +35,19 @@ export default class TekaModel {
         ...TekaModel._onlyRequiredFields,
       });
 
+      return result.content;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async findRelease(query: string) {
+    try {
+      const result = await this._searchModule.searchTitles({
+        search: query,
+        limit: 100,
+        ...TekaModel._onlyRequiredFields,
+      });
       return result.content;
     } catch (e) {
       return null;
