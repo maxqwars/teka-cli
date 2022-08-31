@@ -2,20 +2,16 @@
 import yargs from "yargs";
 import fetch from "cross-fetch";
 import { hideBin } from "yargs/helpers";
-import { updatesCmdHandler, searchCmdHandler } from "./core/TekaController";
+import TekaModel from "./core/TekaModel";
+import TekaController from "./core/TekaController";
+import TekaView from "./core/TekaView";
 
 global.fetch = fetch;
 
+const model = new TekaModel();
+const view = new TekaView();
+const controller = new TekaController(model, view);
+
 yargs(hideBin(process.argv))
-  .command("updates", "fetch updates", updatesCmdHandler)
-  .command(
-    "search [query]",
-    "Search release",
-    (yargs) => {
-      return yargs.positional("query", {
-        describe: "Search query",
-      });
-    },
-    (argv) => searchCmdHandler(argv.query)
-  )
+  .command("get-updates", "=>", () => controller.getUpdatesCommand())
   .parse();

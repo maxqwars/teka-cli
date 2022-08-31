@@ -1,42 +1,89 @@
 import Table from "cli-table3";
-import decodeStatusCode from "../utils/decodeStatusCode";
-import decodeTypeCode from "../utils/decodeTypeCode";
-import qualityDecode from "../utils/qualityDecode";
+import chalk from "chalk";
 
-export type ReleaseTableViewData = {
+export type ReleasesListViewModel = {
   id: number;
   year: number;
-  type: number;
-  status: number;
-  quality: number;
+  typeCode: number;
+  statusCode: number;
+  inFavorites: number;
   name: string;
 };
 
-class TekaView {
-  private terminalWidth = process.stdout.columns;
+export default class TekaView {
+  private _terminalColCount = process.stdout.columns;
 
-  makeReleasesTable(releases: ReleaseTableViewData[]) {
+  private _decodeStatusCode(code: number) {
+    switch (code) {
+      default: {
+        return "Unknown";
+      }
+      case 1: {
+        return chalk.yellow("P");
+      }
+      case 2: {
+        return chalk.green("C");
+      }
+      case 3: {
+        return chalk.red("H");
+      }
+      case 4: {
+        return chalk.gray("N");
+      }
+    }
+  }
+
+  private _decodeTypeCode(code: number) {
+    switch (code) {
+      default: {
+        return "Unknown";
+      }
+      case 0: {
+        return "MOVIE";
+      }
+      case 1: {
+        return "TV";
+      }
+      case 2: {
+        return "OVA";
+      }
+      case 3: {
+        return "ONA";
+      }
+      case 4: {
+        return "SPECIAL";
+      }
+    }
+  }
+
+  private _qualityDecode(count: number) {
+    if (count > 1000) {
+      return Math.round((count as number) / 1000) + "K";
+    }
+
+    return count;
+  }
+
+  generateReleaseListView(viewData: ReleasesListViewModel[]) {
     const minSize = 36;
-    const nameAllowedSize = this.terminalWidth - minSize;
+    const nameAllowedSize = this._terminalColCount - minSize;
 
-    const releasesTable = new Table({
-      head: ["ID", "YEAR", "TYPE", "S", "FAV", "NAME"],
+    const table = new Table({
+      head: ["ID", "YEAR", "TYPE", "S", "POP", "NAME"],
       colWidths: [7, 6, 7, 3, 6, nameAllowedSize],
     });
 
-    releases.map(({ id, year, type, status, name, quality }) => {
-      releasesTable.push([
+    viewData.map(({ id, year, typeCode, statusCode, name, inFavorites }) => {
+      table.push([
         id,
         year,
-        decodeTypeCode(type),
-        decodeStatusCode(status),
-        qualityDecode(quality),
+        this._decodeTypeCode(typeCode),
+        this._decodeStatusCode(statusCode),
+        this._qualityDecode(inFavorites),
         name,
       ]);
     });
 
-    return releasesTable.toString();
+    return table.toString();
   }
 }
-
-export default new TekaView();

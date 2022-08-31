@@ -1,48 +1,36 @@
 import TekaModel from "./TekaModel";
-import TekaView, { ReleaseTableViewData } from "./TekaView";
+import TekaView, { ReleasesListViewModel } from "./TekaView";
 
-class TekaController {
-  private static _model = TekaModel;
-  private static _view = TekaView;
+export default class TekaController {
+  private _model: TekaModel;
+  private _view: TekaView;
 
-  static async updates() {
-    const { content } = await this._model.fetchUpdatedContentList();
-
-    if (content) {
-      const viewData: ReleaseTableViewData[] = content.map((release) => {
-        return {
-          id: release.id || 0,
-          year: release.season?.year || 0,
-          type: release.type?.code || 0,
-          status: release.status?.code || 0,
-          name: release.names?.ru || "Unknown",
-          quality: release.inFavorites || 0,
-        };
-      });
-
-      console.log(this._view.makeReleasesTable(viewData));
-    }
+  constructor(model: TekaModel, view: TekaView) {
+    this._model = model;
+    this._view = view;
   }
 
-  static async search(query: string) {
-    const { content } = await this._model.searchInDatabase(query);
+  async getUpdatesCommand(limit = 10) {
+    const content = await this._model.getUpdates(limit);
 
     if (content) {
-      const viewData: ReleaseTableViewData[] = content.map((release) => {
+      const viewModel: ReleasesListViewModel[] = content?.map((release) => {
         return {
           id: release.id || 0,
           year: release.season?.year || 0,
-          type: release.type?.code || 0,
-          status: release.status?.code || 0,
+          typeCode: release.type?.code || 0,
+          statusCode: release.status?.code || 0,
           name: release.names?.ru || "Unknown",
-          quality: release.inFavorites || 0,
+          inFavorites: release.inFavorites || 0,
         };
       });
 
-      console.log(this._view.makeReleasesTable(viewData));
+      console.log(viewModel)
+
+      console.log(this._view.generateReleaseListView(viewModel));
+      return;
     }
+
+    return;
   }
 }
-
-export const updatesCmdHandler = TekaController.updates.bind(TekaController);
-export const searchCmdHandler = TekaController.search.bind(TekaController);
