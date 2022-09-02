@@ -1,6 +1,6 @@
 import TekaModel from "./TekaModel";
 import TekaView, { ReleasesListViewModel, ReleaseViewModel } from "./TekaView";
-import chalk from "chalk";
+// import chalk from "chalk";
 
 export default class TekaController {
   private _model: TekaModel;
@@ -43,7 +43,7 @@ export default class TekaController {
         inFavorites: content.inFavorites || 0,
         alternativePlayer:
           `https:${content.player?.alternativePlayer}` ||
-          chalk.red("Web player not available".toUpperCase()),
+          "Web player not available".toUpperCase(),
         description: desc,
       };
 

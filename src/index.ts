@@ -1,4 +1,3 @@
-#! /usr/bin/env node
 import yargs from "yargs";
 import fetch from "cross-fetch";
 import { hideBin } from "yargs/helpers";

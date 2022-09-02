@@ -1,5 +1,5 @@
 import Table from "cli-table3";
-import chalk from "chalk";
+// import chalk from "chalk";
 
 export type ReleasesListViewModel = {
   id: number;
@@ -24,16 +24,20 @@ export default class TekaView {
         return "Unknown";
       }
       case 1: {
-        return chalk.yellow("P");
+        // return chalk.yellow("P");
+        return "M"
       }
       case 2: {
-        return chalk.green("C");
+        // return chalk.green("C");
+        return "M"
       }
       case 3: {
-        return chalk.red("H");
+        // return chalk.red("H");
+        return "M"
       }
       case 4: {
-        return chalk.gray("N");
+        // return chalk.gray("N");
+        return "M"
       }
     }
   }
