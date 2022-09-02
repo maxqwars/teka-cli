@@ -19,6 +19,12 @@ export default class TekaModel {
     ],
   };
 
+  static _fetchReleaseRequiredFields: Types.ISelectQueryParams = {
+    filter: ["description", "player"].concat(
+      TekaModel._onlyRequiredFields.filter || []
+    ),
+  };
+
   private _databaseModule: Modules.MetaDatabase;
   private _searchModule: Modules.Search;
 
@@ -26,6 +32,14 @@ export default class TekaModel {
     const sharedConfig = config ? config : TekaModel.defaultModulesConfig;
     this._databaseModule = new Modules.MetaDatabase(sharedConfig);
     this._searchModule = new Modules.Search(sharedConfig);
+  }
+
+  async fetchReleaseData(id: number) {
+    const data = await this._databaseModule.getTitle({
+      id,
+      ...TekaModel._fetchReleaseRequiredFields,
+    });
+    return data;
   }
 
   async getUpdates(limit = 10) {

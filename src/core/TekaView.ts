@@ -10,6 +10,11 @@ export type ReleasesListViewModel = {
   name: string;
 };
 
+export type ReleaseViewModel = ReleasesListViewModel & {
+  alternativePlayer: string | null;
+  description: string;
+};
+
 export default class TekaView {
   private _terminalColCount = process.stdout.columns;
 
@@ -62,6 +67,22 @@ export default class TekaView {
     }
 
     return count;
+  }
+
+  generateReleaseViewCard(viewData: ReleaseViewModel) {
+    const table = new Table();
+
+    table.push(
+      { ID: viewData.id },
+      { NAMES: viewData.name },
+      { STATUS: this._decodeStatusCode(viewData.statusCode) },
+      { TYPE: this._decodeTypeCode(viewData.typeCode) },
+      { FAVORITES: this._qualityDecode(viewData.inFavorites) },
+      { "WEB PLAYER": viewData.alternativePlayer },
+      { DESCRIPTION: viewData.description }
+    );
+
+    return table.toString();
   }
 
   generateReleaseListView(viewData: ReleasesListViewModel[]) {

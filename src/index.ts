@@ -27,4 +27,16 @@ cli.command(
 );
 
 // ==>
+cli.command(
+  "fetch [id]",
+  "=>",
+  (yargs) => {
+    return yargs.positional("id", {});
+  },
+  (argv) => {
+    controller.fetchCommand(Number(argv.id));
+  }
+);
+
+// ==>
 cli.parse();

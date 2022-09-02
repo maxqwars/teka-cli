@@ -1,5 +1,6 @@
 import TekaModel from "./TekaModel";
-import TekaView, { ReleasesListViewModel } from "./TekaView";
+import TekaView, { ReleasesListViewModel, ReleaseViewModel } from "./TekaView";
+import chalk from "chalk";
 
 export default class TekaController {
   private _model: TekaModel;
@@ -8,6 +9,51 @@ export default class TekaController {
   constructor(model: TekaModel, view: TekaView) {
     this._model = model;
     this._view = view;
+  }
+
+  async fetchCommand(id: number) {
+    const { error, content } = await this._model.fetchReleaseData(id);
+
+    function chunk(str, n) {
+      const ret = [""];
+      let i;
+      let len;
+
+      for (i = 0, len = str.length; i < len; i += n) {
+        ret.push(str.substr(i, n));
+      }
+
+      return ret;
+    }
+
+    if (error) {
+      console.log(error);
+      return;
+    }
+
+    if (content) {
+      const desc = chunk(content.description as string, 90).join("\n");
+
+      const viewModel: ReleaseViewModel = {
+        id: content.id || 0,
+        name: `${content.names?.ru}\n${content.names?.en}`,
+        year: content.season?.year || 0,
+        typeCode: content.type?.code || 0,
+        statusCode: content.status?.code || 0,
+        inFavorites: content.inFavorites || 0,
+        alternativePlayer:
+          `https:${content.player?.alternativePlayer}` ||
+          chalk.red("Web player not available".toUpperCase()),
+        description: desc,
+      };
+
+      const table = this._view.generateReleaseViewCard(viewModel);
+
+      console.log(table);
+      return;
+    }
+
+    return;
   }
 
   async getUpdatesCommand(limit = 10) {
