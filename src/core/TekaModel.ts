@@ -1,4 +1,7 @@
 import { Modules, Types, Constants } from "@maxqwars/metaform";
+import fetch from "cross-fetch";
+
+global.fetch = fetch;
 
 export default class TekaModel {
   static defaultModulesConfig: Types.MetaModuleOptions = {

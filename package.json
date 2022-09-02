@@ -2,14 +2,23 @@
   "name": "teka-cli",
   "version": "1.0.3",
   "description": "Unofficial console client for Anilibria",
-  "main": "./build/index.mjs",
+  "main": "./build/index.js",
   "type": "module",
   "bin": {
-    "teka": "build/index.mjs"
+    "teka": "build/index.js"
+  },
+  "pkg": {
+    "scripts": "./build/index.js",
+    "targets": [
+      "node16-windows-x64"
+    ],
+    "outputPath": "dist"
   },
   "scripts": {
     "prebuild": "rimraf build",
     "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "pack": "pkg package.json",
     "format": "prettier --write ./src/",
     "lint": "eslint ./src/*",
     "prepare": "npm run build",
@@ -27,6 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "eslint": "^8.23.0",
+    "pkg": "^5.8.0",
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
     "rollup": "^2.79.0",
@@ -35,8 +45,8 @@
   },
   "dependencies": {
     "@maxqwars/metaform": "^0.0.11",
-    "chalk": "^5.0.1",
     "cli-table3": "^0.6.2",
+    "colorette": "^2.0.19",
     "cross-fetch": "^3.1.5",
     "fast-xml-parser": "^4.0.9",
     "millify": "^5.0.0",

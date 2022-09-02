@@ -1,5 +1,5 @@
 import Table from "cli-table3";
-// import chalk from "chalk";
+import { yellow, green, red, gray } from "colorette";
 
 export type ReleasesListViewModel = {
   id: number;
@@ -24,20 +24,16 @@ export default class TekaView {
         return "Unknown";
       }
       case 1: {
-        // return chalk.yellow("P");
-        return "M"
+        return yellow("P");
       }
       case 2: {
-        // return chalk.green("C");
-        return "M"
+        return green("C");
       }
       case 3: {
-        // return chalk.red("H");
-        return "M"
+        return red("H");
       }
       case 4: {
-        // return chalk.gray("N");
-        return "M"
+        return gray("N");
       }
     }
   }
