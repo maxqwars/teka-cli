@@ -7,32 +7,38 @@ import TekaView from "./core/TekaView";
 const model = new TekaModel();
 const view = new TekaView();
 const controller = new TekaController(model, view);
-const cli = yargs(hideBin(process.argv));
+// const cli = yargs(hideBin(process.argv));
 
-// ==>
-cli.command("get-updates", "=>", () => controller.getUpdatesCommand());
-
-// ==>
-cli.command(
-  "find [query]",
-  "=>",
-  (yargs) => {
-    return yargs.positional("query", {});
-  },
-  (argv) => controller.find(argv.query)
-);
-
-// ==>
-cli.command(
-  "fetch [id]",
-  "=>",
-  (yargs) => {
-    return yargs.positional("id", {});
-  },
-  (argv) => {
-    controller.fetchCommand(Number(argv.id));
-  }
-);
-
-// ==>
-cli.parse();
+yargs(hideBin(process.argv))
+  .command(
+    "get-updates [limit]",
+    "-> Show a list of recent updates",
+    (yargs) => yargs.positional("limit", {}),
+    (argv) => {
+      controller.getUpdatesCommand((argv.limit as number) || 10);
+    }
+  )
+  .command(
+    "find [query]",
+    "-> Search for a release in the database",
+    (yargs) => yargs.positional("query", {}),
+    ({ query }) => controller.find(String(query))
+  )
+  .command(
+    "get [id]",
+    "-> Viewing information about a release by its id",
+    (yargs) => yargs.positional("id", {}),
+    ({ id }) => {
+      controller.fetchCommand(Number(id));
+    }
+  )
+  .command(
+    "download [id] [quality]",
+    "-> Downloads the m3u8 release playlist and transforms it to mp4 using FFmpeg. FFmpeg installed is required",
+    (yargs) => yargs,
+    ({ id, quality }) => {
+      controller.downloadAction(id as number, quality as string);
+    }
+  )
+  .command("doctor", "-> Check the system", () => controller.doctor())
+  .parse();

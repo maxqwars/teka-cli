@@ -1,5 +1,13 @@
 import Table from "cli-table3";
-import { yellow, green, red, gray } from "colorette";
+import {
+  yellow,
+  green,
+  red,
+  gray,
+  bgRed,
+  yellowBright,
+  greenBright,
+} from "colorette";
 
 export type ReleasesListViewModel = {
   id: number;
@@ -13,6 +21,11 @@ export type ReleasesListViewModel = {
 export type ReleaseViewModel = ReleasesListViewModel & {
   alternativePlayer: string | null;
   description: string;
+};
+
+export type DoctorReportViewModel = {
+  ffmpegInstalled: boolean;
+  APIConnection: boolean;
 };
 
 export default class TekaView {
@@ -69,6 +82,11 @@ export default class TekaView {
     return count;
   }
 
+  displayErrorMessage(category = "SYS", message = "Unknown error") {
+    console.log(`${bgRed(category)}: ${red(message)}`);
+    return;
+  }
+
   generateReleaseViewCard(viewData: ReleaseViewModel) {
     const table = new Table();
 
@@ -104,6 +122,25 @@ export default class TekaView {
         name,
       ]);
     });
+
+    return table.toString();
+  }
+
+  doctorReportView(viewModel: DoctorReportViewModel) {
+    const table = new Table();
+
+    table.push(
+      {
+        FFmpeg: viewModel.ffmpegInstalled
+          ? greenBright("FFmpeg installed, command `download` available")
+          : yellowBright("FFmpeg not found, command `download` unavailable"),
+      },
+      {
+        APIConnection: viewModel.APIConnection
+          ? greenBright("Connection to the API server is available")
+          : red("Unable to connect to the API server, please use a VPN"),
+      }
+    );
 
     return table.toString();
   }

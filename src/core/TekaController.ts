@@ -1,6 +1,5 @@
 import TekaModel from "./TekaModel";
 import TekaView, { ReleasesListViewModel, ReleaseViewModel } from "./TekaView";
-// import chalk from "chalk";
 
 export default class TekaController {
   private _model: TekaModel;
@@ -12,7 +11,17 @@ export default class TekaController {
   }
 
   async fetchCommand(id: number) {
-    const { error, content } = await this._model.fetchReleaseData(id);
+    const data = await this._model.fetchReleaseData(id);
+
+    if (data === null) {
+      this._view.displayErrorMessage(
+        "NET_ERROR",
+        "Failed get data from remote server, unavailable"
+      );
+      return;
+    }
+
+    const { error, content } = data;
 
     function chunk(str, n) {
       const ret = [""];
@@ -27,7 +36,10 @@ export default class TekaController {
     }
 
     if (error) {
-      console.log(error);
+      this._view.displayErrorMessage(
+        "FETCH_DATA",
+        `Fail get release data, by release id ${id} not found`
+      );
       return;
     }
 
@@ -56,7 +68,7 @@ export default class TekaController {
     return;
   }
 
-  async getUpdatesCommand(limit = 10) {
+  async getUpdatesCommand(limit) {
     const content = await this._model.getUpdates(limit);
 
     if (content) {
@@ -97,6 +109,19 @@ export default class TekaController {
       return;
     }
 
+    return;
+  }
+
+  async doctor() {
+    const doctorReport = await this._model.doctor();
+    const view = this._view.doctorReportView(doctorReport);
+    console.log(view);
+    return;
+  }
+
+  async downloadAction(id: number, quality = "hd") {
+    const status = await this._model.downloadMedia(id, quality);
+    console.log(status);
     return;
   }
 }

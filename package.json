@@ -31,7 +31,8 @@
   "author": "Maxim \"maxqwars\" Maximenko <maxqwars@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^18.7.13",
+    "@jjldxz/rollup-plugin-env-files": "^1.0.0",
+    "@types/node": "^18.7.14",
     "@types/yargs": "^17.0.11",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
