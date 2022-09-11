@@ -201,13 +201,13 @@ export default class TekaModel {
 
     const { content } = await this._databaseModule.getTitle({
       id,
-      filter: ["player", "names"],
+      filter: ["player", "code"],
     });
 
     if (content) {
       //
       const releaseMediaDir = this.createDirIfNotExist(
-        join(this.mediaDir, String(content.names.ru))
+        join(this.mediaDir, String(content.code))
       );
 
       //

@@ -1,14 +1,13 @@
 # teka-cli
 
-Unofficial console client for Anilibria
+Неофициальный консольный клиент для Анилибрии
 
-## Commands
+## Команды
 
-Description of supported commands
-
-| Command         | Options | Description                               |
-| --------------- | ------- | ----------------------------------------- |
-| updates         | ...     | Get a list of the latest updated releases |
-| fetch <id\>     | ...     | Get information about the release by ID   |
-| fetch-rand      | ...     | Get information about a random release    |
-| search <query\> | ...     | Search for a release in the database      |
+| Команда                 | Описание                                                    |
+| ----------------------- | ----------------------------------------------------------- |
+| get-updates [limit]     | Последние обновления релизов                                |
+| find [query]            | Поиск по базе релизов                                       |
+| get [id]                | Просмотр информации о релизе                                |
+| download [id] [quality] | Загружает релиз, необходим установленный FFmpeg             |
+| doctor                  | Проверяет систему, доступность сервера и доступность FFmpeg |

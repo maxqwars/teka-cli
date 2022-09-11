@@ -2,19 +2,19 @@ import TekaModel from "./TekaModel";
 import TekaView, { ReleasesListViewModel, ReleaseViewModel } from "./TekaView";
 
 export default class TekaController {
-  private _model: TekaModel;
-  private _view: TekaView;
+  private model: TekaModel;
+  private view: TekaView;
 
   constructor(model: TekaModel, view: TekaView) {
-    this._model = model;
-    this._view = view;
+    this.model = model;
+    this.view = view;
   }
 
-  async fetchCommand(id: number) {
-    const data = await this._model.fetchReleaseData(id);
+  async get(id: number) {
+    const data = await this.model.fetchReleaseData(id);
 
     if (data === null) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         "NET_ERROR",
         "Failed get data from remote server, unavailable"
       );
@@ -36,7 +36,7 @@ export default class TekaController {
     }
 
     if (error) {
-      this._view.displayErrorMessage(
+      this.view.displayErrorMessage(
         "FETCH_DATA",
         `Fail get release data, by release id ${id} not found`
       );
@@ -59,7 +59,7 @@ export default class TekaController {
         description: desc,
       };
 
-      const table = this._view.generateReleaseViewCard(viewModel);
+      const table = this.view.generateReleaseViewCard(viewModel);
 
       console.log(table);
       return;
@@ -68,30 +68,34 @@ export default class TekaController {
     return;
   }
 
-  async getUpdatesCommand(limit) {
-    const content = await this._model.getUpdates(limit);
+  async getUpdates(limit) {
+    try {
+      const content = await this.model.getUpdates(limit);
 
-    if (content) {
-      const viewModel: ReleasesListViewModel[] = content?.map((release) => {
-        return {
-          id: release.id || 0,
-          year: release.season?.year || 0,
-          typeCode: release.type?.code || 0,
-          statusCode: release.status?.code || 0,
-          name: release.names?.ru || "Unknown",
-          inFavorites: release.inFavorites || 0,
-        };
-      });
+      if (content) {
+        const viewModel: ReleasesListViewModel[] = content?.map((release) => {
+          return {
+            id: release.id || 0,
+            year: release.season?.year || 0,
+            typeCode: release.type?.code || 0,
+            statusCode: release.status?.code || 0,
+            name: release.names?.ru || "Unknown",
+            inFavorites: release.inFavorites || 0,
+          };
+        });
 
-      console.log(this._view.generateReleaseListView(viewModel));
-      return;
+        console.log(this.view.generateReleaseListView(viewModel));
+        return;
+      }
+    } catch (e) {
+      this.view.displayErrorMessage("SYS", "Failed connect to API server");
     }
 
     return;
   }
 
   async find(query) {
-    const content = await this._model.findRelease(query);
+    const content = await this.model.findRelease(query);
 
     if (content) {
       const viewModel: ReleasesListViewModel[] = content?.map((release) => {
@@ -105,7 +109,7 @@ export default class TekaController {
         };
       });
 
-      console.log(this._view.generateReleaseListView(viewModel));
+      console.log(this.view.generateReleaseListView(viewModel));
       return;
     }
 
@@ -113,14 +117,14 @@ export default class TekaController {
   }
 
   async doctor() {
-    const doctorReport = await this._model.doctor();
-    const view = this._view.doctorReportView(doctorReport);
+    const doctorReport = await this.model.doctor();
+    const view = this.view.doctorReportView(doctorReport);
     console.log(view);
     return;
   }
 
-  async downloadAction(id: number, quality = "hd") {
-    const status = await this._model.downloadMedia(id, quality);
+  async download(id: number, quality = "hd") {
+    const status = await this.model.downloadMedia(id, quality);
     console.log(status);
     return;
   }

@@ -7,6 +7,7 @@ import {
   bgRed,
   yellowBright,
   greenBright,
+  redBright,
 } from "colorette";
 
 export type ReleasesListViewModel = {
@@ -74,6 +75,10 @@ export default class TekaView {
     }
   }
 
+  private errorMessage(message: string) {
+    console.log(redBright(message));
+  }
+
   private _qualityDecode(count: number) {
     if (count > 1000) {
       return Math.round((count as number) / 1000) + "K";
@@ -136,7 +141,7 @@ export default class TekaView {
           : yellowBright("FFmpeg not found, command `download` unavailable"),
       },
       {
-        APIConnection: viewModel.APIConnection
+        Roskomnadzor: viewModel.APIConnection
           ? greenBright("Connection to the API server is available")
           : red("Unable to connect to the API server, please use a VPN"),
       }
