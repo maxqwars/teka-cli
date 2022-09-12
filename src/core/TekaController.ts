@@ -124,7 +124,7 @@ export default class TekaController {
   }
 
   async download(id: number, quality = "hd") {
-    const status = await this.model.downloadMedia(id, quality);
+    const status = await this.model.download(id, quality);
     console.log(status);
     return;
   }

@@ -7,6 +7,8 @@ import TekaView from "./core/TekaView";
 const teka = new TekaController(new TekaModel(), new TekaView());
 
 yargs(hideBin(process.argv))
+  .scriptName("TEKA-CLI")
+  .usage('$0 <cmd> [args]')
   .command(
     "get-updates [limit]",
     "-> Show a list of recent updates",

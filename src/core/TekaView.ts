@@ -26,7 +26,8 @@ export type ReleaseViewModel = ReleasesListViewModel & {
 
 export type DoctorReportViewModel = {
   ffmpegInstalled: boolean;
-  APIConnection: boolean;
+  connectionBlocked: boolean;
+  isDevelopmentBuild: boolean
 };
 
 export default class TekaView {
@@ -136,14 +137,17 @@ export default class TekaView {
 
     table.push(
       {
-        FFmpeg: viewModel.ffmpegInstalled
+        FFMPEG_INSTALLED: viewModel.ffmpegInstalled
           ? greenBright("FFmpeg installed, command `download` available")
           : yellowBright("FFmpeg not found, command `download` unavailable"),
       },
       {
-        Roskomnadzor: viewModel.APIConnection
+        CONN_BLOCKED: viewModel.connectionBlocked
           ? greenBright("Connection to the API server is available")
           : red("Unable to connect to the API server, please use a VPN"),
+      },
+      {
+        DEV_BUILD: viewModel.isDevelopmentBuild ? red('YES') : green('NO')
       }
     );
 

@@ -1,9 +1,10 @@
 import { Modules, Types, Constants } from "@maxqwars/metaform";
-import fetch from "cross-fetch";
+import { mkdirSync, access, createWriteStream } from "node:fs";
+import DebugTools from "../DebugTools";
 import { exec } from "node:child_process";
-import os from "node:os";
 import { join } from "node:path";
-import { readdirSync, mkdirSync, createWriteStream } from "node:fs";
+import fetch from "cross-fetch";
+import os from "node:os";
 import https from "https";
 
 global.fetch = fetch;
@@ -43,24 +44,11 @@ export default class TekaModel {
     const sharedConfig = config ? config : TekaModel.defaultModulesConfig;
     this._databaseModule = new Modules.MetaDatabase(sharedConfig);
     this._searchModule = new Modules.Search(sharedConfig);
-
-    this.deploy();
   }
 
-  private deploy() {
-    // Stage 1: Prepare work dir
-    try {
-      readdirSync(this.workDir);
-    } catch (e) {
-      mkdirSync(this.workDir);
-    }
-
-    // Stage 2: Prepare `media` dir
-    try {
-      readdirSync(this.mediaDir);
-    } catch (e) {
-      mkdirSync(this.mediaDir);
-    }
+  private async deploy() {
+    await this.makeDirectory(this.workDir);
+    await this.makeDirectory(this.mediaDir);
   }
 
   async fetchReleaseData(id: number) {
@@ -119,21 +107,19 @@ export default class TekaModel {
   }
 
   async doctor() {
-    const ffmpegInstalled = await this._checkFFmpegInstallation(); // FFmpeg installed in system
-    const APIConnection = await this._checkApiConnection(); // Check API connection
+    const ffmpegInstalled = await this._checkFFmpegInstallation();
+    const connectionBlocked = await this._checkApiConnection();
+    const isDevelopmentBuild = process.env.NODE_ENV !== "development" || true;
 
     return {
       ffmpegInstalled,
-      APIConnection,
+      connectionBlocked,
+      isDevelopmentBuild,
     };
   }
 
-  private generateListOfStreamsToDownload(title: Types.Title, quality: string) {
-    const {
-      player: { host, playlist },
-    } = title;
-
-    const m3u8Host = `https://${host}`;
+  private generateDownloadsList(title: Types.Title, quality: string) {
+    const host = `https://${title.player.host}`;
     const result = [];
 
     const selectQuality = (list: {
@@ -157,19 +143,38 @@ export default class TekaModel {
       }
     };
 
-    for (const key in playlist) {
-      const { hls } = playlist[key];
+    for (const key in title.player.playlist) {
+      const { hls } = title.player.playlist[key];
       const file = selectQuality(hls);
 
-      result.push(`${m3u8Host}${file}`);
+      result.push(`${host}${file}`);
     }
 
     return result;
   }
 
-  private createDirIfNotExist(path: string) {
+  private async makeDirectory(path: string) {
+    async function exist(path: string) {
+      return new Promise((resolve) => {
+        access(path, (err) => {
+          if (err) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        });
+      });
+    }
+
+    const dirIsExist = await exist(path);
+
+    DebugTools.debugLog(`DIR ${path} is exist ${!!dirIsExist}`);
+
+    if (dirIsExist) return path;
+
     try {
-      return mkdirSync(path);
+      mkdirSync(path);
+      return path;
     } catch (e) {
       return path;
     }
@@ -192,43 +197,65 @@ export default class TekaModel {
     });
   }
 
-  async downloadMedia(id: number, quality: string) {
-    const ffmpegInstalled = await this._checkFFmpegInstallation();
+  private async downloadMedia(url, index) {
 
-    if (!ffmpegInstalled) {
-      throw Error("Failed run download, ffmpeg not installed!");
+    
+
+    return new Promise((resolve, reject) => {
+      exec(
+        `ffmpeg -threads ${os.cpus().length} -i ${url} -c copy -bsf:a aac_adtstoasc episode-${index}.mp4`,
+        (err) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(true);
+        }
+      );
+    });
+  }
+
+  async download(id: number, quality: string) {
+
+    DebugTools.debugLog(`CPU_THREADS_COUNT ${os.cpus().length}`)
+
+    await this.deploy();
+
+    if (!(await this._checkFFmpegInstallation())) {
+      throw Error('Failed run "download", ffmpeg not installed!');
     }
 
     const { content } = await this._databaseModule.getTitle({
       id,
-      filter: ["player", "code"],
+      filter: ["player", "code", "posters"],
     });
 
     if (content) {
-      //
-      const releaseMediaDir = this.createDirIfNotExist(
+      const releaseMediaDir = await this.makeDirectory(
         join(this.mediaDir, String(content.code))
       );
 
-      //
-      const m3u8Dir = this.createDirIfNotExist(
-        join(releaseMediaDir as string, "m3u8")
+      // Download poster
+      await this.wget(
+        `https://anilibria.tv${content.posters.original.url}`,
+        join(releaseMediaDir, "poster.jpg")
       );
 
-      const streamsToDownload = this.generateListOfStreamsToDownload(
-        content,
-        quality
-      );
+      const downloadsList = this.generateDownloadsList(content, quality);
+      const downloadsCount = downloadsList.length;
 
-      const downloadsCount = streamsToDownload.length;
-
+      process.chdir(releaseMediaDir);
+      DebugTools.debugLog(`Work dir changed to ${releaseMediaDir}`)
+      
+      // Start downloading
       for (let i = 0; i < downloadsCount; i++) {
-        const url = streamsToDownload[i];
-        await this.wget(url, join(m3u8Dir as string, `${i}.m3u8`));
-        console.log(`Download stream [${i}/${downloadsCount - 1}]`);
+        const url = downloadsList[i];
+        this.downloadMedia(url, i + 1);
+        DebugTools.debugLog(
+          `Episode ${i + 1}/${downloadsCount} download started... `
+        );
       }
-    }
 
-    return;
+      return;
+    }
   }
 }
