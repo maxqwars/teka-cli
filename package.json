@@ -9,16 +9,13 @@
   },
   "pkg": {
     "scripts": "./build/index.js",
-    "targets": [
-      "node16-windows-x64"
-    ],
     "outputPath": "dist"
   },
   "scripts": {
     "prebuild": "rimraf build",
     "build": "cross-env NODE_ENV=production rollup -c",
     "dev": "cross-env NODE_ENV=development rollup -c -w",
-    "pack": "pkg package.json",
+    "dist": "npm run build && pkg package.json",
     "format": "prettier --write ./src/",
     "lint": "eslint ./src/*",
     "prepare": "npm run build",
