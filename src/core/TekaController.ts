@@ -10,41 +10,43 @@ export default class TekaController {
     this.view = view;
   }
 
+  private splitText(str, n) {
+    const ret = [""];
+    let i;
+    let len;
+
+    for (i = 0, len = str.length; i < len; i += n) {
+      ret.push(str.substr(i, n));
+    }
+
+    return ret;
+  }
+
   async get(id: number) {
     const data = await this.model.fetchReleaseData(id);
 
+    // cross-fetch error
     if (data === null) {
       this.view.displayErrorMessage(
-        "NET_ERROR",
-        "Failed get data from remote server, unavailable"
+        "ACCESS_ERROR",
+        "Error receiving data from API server. The API server is not available."
       );
       return;
     }
 
     const { error, content } = data;
 
-    function chunk(str, n) {
-      const ret = [""];
-      let i;
-      let len;
-
-      for (i = 0, len = str.length; i < len; i += n) {
-        ret.push(str.substr(i, n));
-      }
-
-      return ret;
-    }
-
+    // API error
     if (error) {
       this.view.displayErrorMessage(
-        "FETCH_DATA",
-        `Fail get release data, by release id ${id} not found`
+        "API_ERROR",
+        `API error, release with specified id was not found.`
       );
       return;
     }
 
     if (content) {
-      const desc = chunk(content.description as string, 90).join("\n");
+      const desc = this.splitText(content.description as string, 90).join("\n");
 
       const viewModel: ReleaseViewModel = {
         id: content.id || 0,
@@ -53,16 +55,11 @@ export default class TekaController {
         typeCode: content.type?.code || 0,
         statusCode: content.status?.code || 0,
         inFavorites: content.inFavorites || 0,
-        alternativePlayer:
-          `https:${content.player?.alternativePlayer}` ||
-          "Web player not available".toUpperCase(),
         description: desc,
+        genres: content.genres,
       };
 
-      const table = this.view.generateReleaseViewCard(viewModel);
-
-      console.log(table);
-      return;
+      return console.log(this.view.titleView(viewModel));
     }
 
     return;
@@ -84,7 +81,7 @@ export default class TekaController {
           };
         });
 
-        console.log(this.view.generateReleaseListView(viewModel));
+        console.log(this.view.titlesListView(viewModel));
         return;
       }
     } catch (e) {
@@ -109,7 +106,7 @@ export default class TekaController {
         };
       });
 
-      console.log(this.view.generateReleaseListView(viewModel));
+      console.log(this.view.titlesListView(viewModel));
       return;
     }
 
@@ -117,10 +114,8 @@ export default class TekaController {
   }
 
   async doctor() {
-    const doctorReport = await this.model.doctor();
-    const view = this.view.doctorReportView(doctorReport);
-    console.log(view);
-    return;
+    const report = await this.model.doctor();
+    return console.log(this.view.doctorReportView(report));
   }
 
   async download(id: number, quality = "hd") {

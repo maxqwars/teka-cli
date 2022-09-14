@@ -7,7 +7,6 @@ import {
   bgRed,
   yellowBright,
   greenBright,
-  redBright,
 } from "colorette";
 
 export type ReleasesListViewModel = {
@@ -20,67 +19,42 @@ export type ReleasesListViewModel = {
 };
 
 export type ReleaseViewModel = ReleasesListViewModel & {
-  alternativePlayer: string | null;
   description: string;
+  genres: string[];
 };
 
 export type DoctorReportViewModel = {
   ffmpegInstalled: boolean;
-  connectionBlocked: boolean;
-  isDevelopmentBuild: boolean
+  apiIsAvailable: boolean;
+  isDevelopmentBuild: boolean;
 };
 
 export default class TekaView {
   private _terminalColCount = process.stdout.columns;
 
-  private _decodeStatusCode(code: number) {
-    switch (code) {
-      default: {
-        return "Unknown";
-      }
-      case 1: {
-        return yellow("P");
-      }
-      case 2: {
-        return green("C");
-      }
-      case 3: {
-        return red("H");
-      }
-      case 4: {
-        return gray("N");
-      }
+  private statusCodeToString(code: number, short) {
+    const fullDictionary = [
+      "?",
+      yellow("At work"),
+      green("The voiceover is complete"),
+      red("Hidden"),
+      gray("Not ongoing"),
+    ];
+    const shortDictionary = ["?", yellow("P"), green("C"), red("H"), gray("N")];
+
+    if (!short) {
+      return shortDictionary[code];
     }
+
+    return fullDictionary[code];
   }
 
-  private _decodeTypeCode(code: number) {
-    switch (code) {
-      default: {
-        return "Unknown";
-      }
-      case 0: {
-        return "MOVIE";
-      }
-      case 1: {
-        return "TV";
-      }
-      case 2: {
-        return "OVA";
-      }
-      case 3: {
-        return "ONA";
-      }
-      case 4: {
-        return "SPECIAL";
-      }
-    }
+  private typeToString(code: number) {
+    const dictionary = ["Unknown", "Movie", "TV", "OVA", "ONA", "Special"];
+    return dictionary[code];
   }
 
-  private errorMessage(message: string) {
-    console.log(redBright(message));
-  }
-
-  private _qualityDecode(count: number) {
+  private round(count: number) {
     if (count > 1000) {
       return Math.round((count as number) / 1000) + "K";
     }
@@ -93,23 +67,21 @@ export default class TekaView {
     return;
   }
 
-  generateReleaseViewCard(viewData: ReleaseViewModel) {
+  titleView(viewModel: ReleaseViewModel) {
     const table = new Table();
-
     table.push(
-      { ID: viewData.id },
-      { NAMES: viewData.name },
-      { STATUS: this._decodeStatusCode(viewData.statusCode) },
-      { TYPE: this._decodeTypeCode(viewData.typeCode) },
-      { FAVORITES: this._qualityDecode(viewData.inFavorites) },
-      { "WEB PLAYER": viewData.alternativePlayer },
-      { DESCRIPTION: viewData.description }
+      { ID: viewModel.id },
+      { NAMES: viewModel.name },
+      { STATUS: this.statusCodeToString(viewModel.statusCode, true) },
+      { TYPE: this.typeToString(viewModel.typeCode) },
+      { FAVORITES: this.round(viewModel.inFavorites) },
+      { GENRES: viewModel.genres.join(", ") },
+      { DESCRIPTION: viewModel.description }
     );
-
     return table.toString();
   }
 
-  generateReleaseListView(viewData: ReleasesListViewModel[]) {
+  titlesListView(viewModel: ReleasesListViewModel[]) {
     const minSize = 36;
     const nameAllowedSize = this._terminalColCount - minSize;
 
@@ -118,13 +90,13 @@ export default class TekaView {
       colWidths: [7, 6, 7, 3, 6, nameAllowedSize],
     });
 
-    viewData.map(({ id, year, typeCode, statusCode, name, inFavorites }) => {
+    viewModel.map(({ id, year, typeCode, statusCode, name, inFavorites }) => {
       table.push([
         id,
         year,
-        this._decodeTypeCode(typeCode),
-        this._decodeStatusCode(statusCode),
-        this._qualityDecode(inFavorites),
+        this.typeToString(typeCode),
+        this.statusCodeToString(statusCode, false),
+        this.round(inFavorites),
         name,
       ]);
     });
@@ -137,17 +109,19 @@ export default class TekaView {
 
     table.push(
       {
-        FFMPEG_INSTALLED: viewModel.ffmpegInstalled
+        "FFmpeg installed on the system": viewModel.ffmpegInstalled
           ? greenBright("FFmpeg installed, command `download` available")
           : yellowBright("FFmpeg not found, command `download` unavailable"),
       },
       {
-        CONN_BLOCKED: viewModel.connectionBlocked
+        "API is available": viewModel.apiIsAvailable
           ? greenBright("Connection to the API server is available")
           : red("Unable to connect to the API server, please use a VPN"),
       },
       {
-        DEV_BUILD: viewModel.isDevelopmentBuild ? red('YES') : green('NO')
+        "This is development build": viewModel.isDevelopmentBuild
+          ? red("YES")
+          : green("NO"),
       }
     );
 

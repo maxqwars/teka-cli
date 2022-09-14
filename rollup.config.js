@@ -43,7 +43,12 @@ export default {
     "cross-fetch",
     "yargs/helpers",
     "@maxqwars/metaform",
-    "chalk",
     "cli-table3",
+    "node:fs",
+    "node:path",
+    "node:child_process",
+    "node:os",
+    "https",
+    "colorette"
   ],
 };

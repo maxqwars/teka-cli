@@ -1,5 +1,5 @@
 import { Modules, Types, Constants } from "@maxqwars/metaform";
-import { mkdirSync, access, createWriteStream } from "node:fs";
+import { mkdirSync, access, createWriteStream, readdirSync } from "node:fs";
 import DebugTools from "../DebugTools";
 import { exec } from "node:child_process";
 import { join } from "node:path";
@@ -25,6 +25,7 @@ export default class TekaModel {
       "status.code",
       "season.year",
       "type.code",
+      "genres"
     ],
   };
 
@@ -34,26 +35,28 @@ export default class TekaModel {
     ),
   };
 
-  private _databaseModule: Modules.MetaDatabase;
-  private _searchModule: Modules.Search;
+  private metaDatabaseModule: Modules.MetaDatabase;
+  private metaSearchModule: Modules.Search;
 
   private workDir = join(os.homedir(), "teka-cli");
   private mediaDir = join(this.workDir, "media");
+  private usrVideosDir = join(os.homedir(), "videos", "Teka");
 
   constructor(config?: Types.MetaModuleOptions) {
     const sharedConfig = config ? config : TekaModel.defaultModulesConfig;
-    this._databaseModule = new Modules.MetaDatabase(sharedConfig);
-    this._searchModule = new Modules.Search(sharedConfig);
+    this.metaDatabaseModule = new Modules.MetaDatabase(sharedConfig);
+    this.metaSearchModule = new Modules.Search(sharedConfig);
   }
 
   private async deploy() {
     await this.makeDirectory(this.workDir);
     await this.makeDirectory(this.mediaDir);
+    await this.makeDirectory(this.usrVideosDir);
   }
 
   async fetchReleaseData(id: number) {
     try {
-      const data = await this._databaseModule.getTitle({
+      const data = await this.metaDatabaseModule.getTitle({
         id,
         ...TekaModel._fetchReleaseRequiredFields,
       });
@@ -65,7 +68,7 @@ export default class TekaModel {
 
   async getUpdates(limit) {
     try {
-      const result = await this._databaseModule.getUpdates({
+      const result = await this.metaDatabaseModule.getUpdates({
         limit,
         ...TekaModel._onlyRequiredFields,
       });
@@ -78,7 +81,7 @@ export default class TekaModel {
 
   async findRelease(query: string) {
     try {
-      const result = await this._searchModule.searchTitles({
+      const result = await this.metaSearchModule.searchTitles({
         search: query,
         limit: 100,
         ...TekaModel._onlyRequiredFields,
@@ -89,7 +92,7 @@ export default class TekaModel {
     }
   }
 
-  private async _checkApiConnection() {
+  private async theApiHostIsAvailable() {
     try {
       await fetch("https://api.anilibria.tv/");
       return true;
@@ -98,7 +101,7 @@ export default class TekaModel {
     }
   }
 
-  private async _checkFFmpegInstallation(): Promise<boolean> {
+  private async ffmpegIsInstalled(): Promise<boolean> {
     return new Promise((resolve) => {
       exec("ffmpeg -h", (error) => {
         resolve(!error);
@@ -107,13 +110,13 @@ export default class TekaModel {
   }
 
   async doctor() {
-    const ffmpegInstalled = await this._checkFFmpegInstallation();
-    const connectionBlocked = await this._checkApiConnection();
-    const isDevelopmentBuild = process.env.NODE_ENV !== "development" || true;
+    const ffmpegInstalled = await this.ffmpegIsInstalled();
+    const apiIsAvailable = await this.theApiHostIsAvailable();
+    const isDevelopmentBuild = process.env.NODE_ENV === "development" || false;
 
     return {
       ffmpegInstalled,
-      connectionBlocked,
+      apiIsAvailable,
       isDevelopmentBuild,
     };
   }
@@ -198,12 +201,11 @@ export default class TekaModel {
   }
 
   private async downloadMedia(url, index) {
-
-    
-
     return new Promise((resolve, reject) => {
       exec(
-        `ffmpeg -threads ${os.cpus().length} -i ${url} -c copy -bsf:a aac_adtstoasc episode-${index}.mp4`,
+        `ffmpeg -threads ${
+          os.cpus().length
+        } -i ${url} -c copy -bsf:a aac_adtstoasc episode-${index}.mp4`,
         (err) => {
           if (err) {
             reject(err);
@@ -215,23 +217,28 @@ export default class TekaModel {
   }
 
   async download(id: number, quality: string) {
-
-    DebugTools.debugLog(`CPU_THREADS_COUNT ${os.cpus().length}`)
+    // Show development info
+    DebugTools.debugLog(`CPU_THREADS_COUNT ${os.cpus().length}`);
+    DebugTools.debugLog(`USR_VIDEOS_DIR_PATH ${this.usrVideosDir}`);
 
     await this.deploy();
+    DebugTools.debugLog(`USR_VIDEOS_SCAN ${readdirSync(this.usrVideosDir)}`);
 
-    if (!(await this._checkFFmpegInstallation())) {
+    // Abort execution if FFmpeg not installed
+    if (!(await this.ffmpegIsInstalled())) {
       throw Error('Failed run "download", ffmpeg not installed!');
     }
 
-    const { content } = await this._databaseModule.getTitle({
+    // Fetch data from API
+    const { content } = await this.metaDatabaseModule.getTitle({
       id,
       filter: ["player", "code", "posters"],
     });
 
+    //
     if (content) {
       const releaseMediaDir = await this.makeDirectory(
-        join(this.mediaDir, String(content.code))
+        join(this.usrVideosDir, String(content.code))
       );
 
       // Download poster
@@ -244,8 +251,8 @@ export default class TekaModel {
       const downloadsCount = downloadsList.length;
 
       process.chdir(releaseMediaDir);
-      DebugTools.debugLog(`Work dir changed to ${releaseMediaDir}`)
-      
+      DebugTools.debugLog(`Work dir changed to ${releaseMediaDir}`);
+
       // Start downloading
       for (let i = 0; i < downloadsCount; i++) {
         const url = downloadsList[i];
