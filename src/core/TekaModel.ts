@@ -1,11 +1,13 @@
 import { Modules, Types, Constants } from "@maxqwars/metaform";
-import { mkdirSync, access, createWriteStream, readdirSync } from "node:fs";
+import { mkdirSync, access, createWriteStream } from "node:fs";
 import DebugTools from "../DebugTools";
 import { exec } from "node:child_process";
 import { join } from "node:path";
 import fetch from "cross-fetch";
 import os from "node:os";
 import https from "https";
+import { SocksProxyAgent } from "socks-proxy-agent";
+import TekaConfigModel from "../models/TekaConfigModel";
 
 global.fetch = fetch;
 
@@ -25,7 +27,7 @@ export default class TekaModel {
       "status.code",
       "season.year",
       "type.code",
-      "genres"
+      "genres",
     ],
   };
 
@@ -37,21 +39,20 @@ export default class TekaModel {
 
   private metaDatabaseModule: Modules.MetaDatabase;
   private metaSearchModule: Modules.Search;
+  private tekaConfigModel: TekaConfigModel;
 
-  private workDir = join(os.homedir(), "teka-cli");
-  private mediaDir = join(this.workDir, "media");
   private usrVideosDir = join(os.homedir(), "videos", "Teka");
 
   constructor(config?: Types.MetaModuleOptions) {
     const sharedConfig = config ? config : TekaModel.defaultModulesConfig;
     this.metaDatabaseModule = new Modules.MetaDatabase(sharedConfig);
     this.metaSearchModule = new Modules.Search(sharedConfig);
+    this.tekaConfigModel = new TekaConfigModel();
   }
 
-  private async deploy() {
-    await this.makeDirectory(this.workDir);
-    await this.makeDirectory(this.mediaDir);
+  async init() {
     await this.makeDirectory(this.usrVideosDir);
+    console.log(await this.tekaConfigModel.get());
   }
 
   async fetchReleaseData(id: number) {
@@ -184,10 +185,13 @@ export default class TekaModel {
   }
 
   private async wget(url, path) {
+    const connectInfo = "socks://127.0.0.1:9150";
+    const agent = new SocksProxyAgent(connectInfo);
+
     return new Promise((resolve, reject) => {
       try {
         const file = createWriteStream(path);
-        https.get(url, (res) => {
+        https.get(url, { agent }, (res) => {
           res.pipe(file);
           file.on("finish", () => {
             file.close();
@@ -220,9 +224,6 @@ export default class TekaModel {
     // Show development info
     DebugTools.debugLog(`CPU_THREADS_COUNT ${os.cpus().length}`);
     DebugTools.debugLog(`USR_VIDEOS_DIR_PATH ${this.usrVideosDir}`);
-
-    await this.deploy();
-    DebugTools.debugLog(`USR_VIDEOS_SCAN ${readdirSync(this.usrVideosDir)}`);
 
     // Abort execution if FFmpeg not installed
     if (!(await this.ffmpegIsInstalled())) {

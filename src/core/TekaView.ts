@@ -7,6 +7,7 @@ import {
   bgRed,
   yellowBright,
   greenBright,
+  blue
 } from "colorette";
 
 export type ReleasesListViewModel = {
@@ -102,6 +103,10 @@ export default class TekaView {
     });
 
     return table.toString();
+  }
+
+  supportView() {
+    return null
   }
 
   doctorReportView(viewModel: DoctorReportViewModel) {

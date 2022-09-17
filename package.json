@@ -51,6 +51,7 @@
     "m3u8-parser": "^4.8.0",
     "millify": "^5.0.0",
     "remove": "^0.1.5",
+    "socks-proxy-agent": "^7.0.0",
     "yargs": "^17.5.1"
   },
   "repository": {

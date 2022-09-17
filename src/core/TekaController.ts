@@ -10,6 +10,10 @@ export default class TekaController {
     this.view = view;
   }
 
+  async init() {
+    await this.model.init();
+  }
+
   private splitText(str, n) {
     const ret = [""];
     let i;
@@ -119,8 +123,12 @@ export default class TekaController {
   }
 
   async download(id: number, quality = "hd") {
-    const status = await this.model.download(id, quality);
+    await this.model.download(id, quality);
     console.log(`Download release ${id} media files started... please wait`);
     return;
+  }
+
+  about() {
+    this.view.supportView();
   }
 }
