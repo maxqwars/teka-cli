@@ -128,7 +128,8 @@ export default class TekaController {
     return;
   }
 
-  about() {
-    this.view.supportView();
+  async save(id) {
+    await this.model.save(id);
+    console.log("Save complete");
   }
 }

@@ -43,9 +43,14 @@ teka
         }
       )
       .command("doctor", "-> Check the system", () => teka.doctor())
-      .command("about", "->", () => {
-        teka.about();
-      })
+      .command(
+        "save [id]",
+        "-> ???",
+        (yargs) => yargs.positional("id", {}),
+        ({ id }) => {
+          teka.save(id);
+        }
+      )
       .parse();
   })
   .catch((e) => console.log(e));

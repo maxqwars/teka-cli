@@ -9,7 +9,7 @@ export default class TekaConfigModel {
   private usrHomeDir = homedir();
   private configFilePath = join(this.usrHomeDir, "teka-config.json");
 
-  private async read() {
+  private async read(): Promise<TekaConfig | never> {
     DebugTools.debugLog("Read teka config..");
     return new Promise((resolve, reject) => {
       readFile(this.configFilePath, "utf8", (err, data) => {
@@ -26,7 +26,9 @@ export default class TekaConfigModel {
     });
   }
 
-  private async write(config: TekaConfig = DEFAULT_CONFIG) {
+  private async write(
+    config: TekaConfig = DEFAULT_CONFIG
+  ): Promise<TekaConfig | never> {
     DebugTools.debugLog("Write teka config...");
     return new Promise((resolve, reject) => {
       try {
@@ -46,7 +48,7 @@ export default class TekaConfigModel {
     });
   }
 
-  async get() {
+  async get(): Promise<TekaConfig> {
     try {
       return await this.read();
     } catch (e) {

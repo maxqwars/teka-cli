@@ -49,6 +49,7 @@ export default {
     "node:child_process",
     "node:os",
     "https",
-    "colorette"
+    "colorette",
+    "socks-proxy-agent"
   ],
 };
